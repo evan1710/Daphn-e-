@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daphnée</title> <!-- Le titre du site est "Daphnée" -->
+    <!-- Chargement de Tailwind CSS pour un style moderne et réactif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styles de base et dégradé de fond doux */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #fce4ec, #f8bbd0); /* Dégradé de rose pastel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Cache les débordements */
+            position: relative;
+        }
+
+        /* Styles pour l'icône de rose (SVG) */
+        .rose-icon {
+            width: 80px; /* Taille par défaut de la rose */
+            height: 80px;
+            color: #E91E63; /* Couleur principale de la rose */
+            fill: currentColor;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .rose-icon:hover {
+            transform: scale(1.1); /* Effet d'agrandissement au survol */
+        }
+
+        /* Animation pour le message spécial le 29 du mois */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce {
+            animation: bounce 1s infinite alternate;
+        }
+    </style>
+</head>
+<body class="selection:bg-pink-300 selection:text-pink-900">
+    <!-- Section d'entrée du code pour déverrouiller le site entier -->
+    <div id="site-unlock-section" class="relative z-20 p-6 sm:p-8 md:p-10 bg-white bg-opacity-95 rounded-3xl shadow-2xl max-w-xs sm:max-w-sm mx-4 text-center transform transition-transform duration-300 ease-in-out border border-pink-200">
+        <h2 class="text-2xl sm:text-3xl font-bold text-pink-700 mb-4">
+            Bienvenue !
+        </h2>
+        <p class="text-gray-700 mb-4 text-base sm:text-lg">
+            Pour accéder au site, veuillez entrer le code.
+        </p>
+        <input type="password" id="site-unlock-input"
+               class="w-full p-3 mb-4 text-center border-2 border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all duration-200"
+               placeholder="Code d'accès">
+        <button id="site-unlock-button"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105">
+            Accéder
+        </button>
+        <p id="site-unlock-error" class="text-red-500 text-sm mt-2" style="display: none;"></p>
+    </div>
+
+    <!-- Conteneur principal du contenu du site, initialement caché -->
+    <div id="main-content-wrapper" class="relative z-10 p-6 sm:p-8 md:p-10 lg:p-12 bg-white bg-opacity-90 rounded-3xl shadow-2xl max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-4 text-center transform transition-transform duration-300 ease-in-out border border-pink-200" style="display: none;">
+        <div id="content-container">
+            <!-- Le contenu sera injecté ici par JavaScript -->
+            <p class="text-gray-600 text-lg sm:text-xl">Chargement du contenu...</p>
+        </div>
+
+        <!-- Section pour entrer le code secret (pour le message du 29), initialement cachée -->
+        <div id="secret-code-section" class="mt-8 pt-4 border-t border-pink-200" style="display: none;">
+            <p class="text-gray-700 mb-3 text-base sm:text-lg">
+                Tu peux aussi entrer un code secret pour voir la surprise en avance !
+            </p>
+            <input type="password" id="secret-code-input"
+                   class="w-full p-3 mb-4 text-center border-2 border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-500 transition-all duration-200"
+                   placeholder="Entre le code ici...">
+            <button id="unlock-button"
+                    class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105">
+                Déverrouiller
+            </button>
+            <p id="error-message" class="text-red-500 text-sm mt-2" style="display: none;"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startDate = new Date(2024, 9, 29, 20, 59, 0); // Mois est 0-indexé, donc 9 = Octobre
+            const today = new Date();
+
+            // Éléments pour le déverrouillage du site complet (code 2343)
+            const siteUnlockSection = document.getElementById('site-unlock-section');
+            const siteUnlockInput = document.getElementById('site-unlock-input');
+            const siteUnlockButton = document.getElementById('site-unlock-button');
+            const siteUnlockError = document.getElementById('site-unlock-error');
+            const SITE_UNLOCK_CODE = "2343"; // Nouveau code pour déverrouiller l'accès au site
+
+            // Éléments du contenu principal du site
+            const mainContentWrapper = document.getElementById('main-content-wrapper');
+            const contentContainer = document.getElementById('content-container');
+
+            // Éléments pour le déverrouillage du message du 29 (code 2202)
+            const secretCodeSection = document.getElementById('secret-code-section');
+            const secretCodeInput = document.getElementById('secret-code-input');
+            const unlockButton = document.getElementById('unlock-button');
+            const errorMessage = document.getElementById('error-message');
+            const SECRET_CODE_MONTHLY = "2202"; // Ancien code pour déverrouiller le message mensuel
+
+            /**
+             * Calcule le nombre de mois passés depuis la date de début.
+             * @param {Date} start La date de début.
+             * @param {Date} end La date de fin.
+             * @returns {number} Le nombre de mois complets.
+             */
+            function calculateMonthsPassed(start, end) {
+                let months;
+                months = (end.getFullYear() - start.getFullYear()) * 12;
+                months -= start.getMonth();
+                months += end.getMonth();
+                // Ajuster si le jour de fin est avant le jour de début dans le mois courant
+                if (end.getDate() < start.getDate()) {
+                    months--;
+                }
+                return months + 1; // Ajoute 1 pour que le 1er mois soit mois 1, pas 0
+            }
+
+            /**
+             * Affiche le contenu spécial du moisanniversaire.
+             */
+            function displayAnniversaryContent() {
+                const monthsPassed = calculateMonthsPassed(startDate, today);
+
+                contentContainer.innerHTML = `
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-700 mb-4 leading-tight animate-bounce">
+                        💖 ${monthsPassed} Mois Spéciaux Ensemble ! 🌹
+                    </h1>
+                    <div class="mb-6 flex justify-center">
+                        <!-- Icône de rose SVG -->
+                        <svg class="rose-icon" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 21.5c-3.3-3.3-6-6-6-9.5 0-4.1 3.1-7.5 7-7.5s7 3.4 7 7.5c0 3.5-2.7 6.2-6 9.5z"></path>
+                            <path d="M12 21.5L12 14"></path>
+                            <path d="M12 14c-1.5-1.5-3-2-3-3.5 0-1.7 1.3-3 3-3s3 1.3 3 3c0 1.5-1.5 2-3 3.5z"></path>
+                            <path d="M10 13l-2.5 2.5"></path>
+                            <path d="M14 13l2.5 2.5"></path>
+                            <path d="M12 11.5L12 5"></path>
+                            <path d="M9 10L6.5 7.5"></path>
+                            <path d="M15 10L17.5 7.5"></path>
+                        </svg>
+                    </div>
+                    <p class="text-base sm:text-lg md:text-xl text-gray-700 mb-6 leading-relaxed">
+                        ${monthsPassed} mois déjà. Le temps passe vite quand on est avec toi.
+                        Je suis vraiment content de t’avoir rencontrée, t'es la meilleure personne que je connaisse.
+                    </p>
+                    <p class="text-lg sm:text-xl md:text-2xl font-semibold text-pink-600">
+                        J'ai vraiment envie de rester avec toi, passer mon temps avec toi me fait tellement de bien, princesse.🌹
+                    </p>
+                `;
+                secretCodeSection.style.display = 'none'; // Cache la section du code 2202 une fois le contenu débloqué
+            }
+
+            /**
+             * Affiche le message d'attente quand le contenu n'est pas débloqué.
+             */
+            function displayWaitingContent() {
+                let next29th = new Date(today.getFullYear(), today.getMonth(), 29);
+                if (today.getDate() > 29) { // Si on a dépassé le 29 ce mois-ci, on va au 29 du mois prochain
+                    next29th = new Date(today.getFullYear(), today.getMonth() + 1, 29);
+                }
+
+                const diffTime = Math.abs(next29th - today);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                contentContainer.innerHTML = `
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-700 mb-4 leading-tight">
+                        En attendant notre jour spécial, princesse... ⏳
+                    </h1>
+                    <p class="text-base sm:text-lg md:text-xl text-gray-700 mb-6 leading-relaxed">
+                        Ce petit coin secret t'attend pour une surprise spéciale, qui se révèle uniquement le 29 de chaque mois. C'est notre façon de célébrer nos moments précieux. Chaque jour nous rapproche de cette date où un nouveau message t'attend.
+                    </p>
+                    <p class="text-lg sm:text-xl md:text-2xl font-semibold text-pink-600">
+                        Plus que <span class="font-extrabold">${diffDays} jours</span> avant de découvrir ce que ce mois nous réserve !
+                    </p>
+                `;
+                secretCodeSection.style.display = 'block'; // Affiche la section du code 2202
+            }
+
+            /**
+             * Déverrouille le contenu principal du site après vérification du code 2343.
+             */
+            function unlockSiteContent() {
+                const enteredSiteCode = siteUnlockInput.value.trim();
+                if (enteredSiteCode === SITE_UNLOCK_CODE) {
+                    siteUnlockError.style.display = 'none';
+                    siteUnlockSection.style.display = 'none'; // Cache la section de déverrouillage du site
+                    mainContentWrapper.style.display = 'block'; // Affiche le contenu principal du site
+
+                    // Une fois le site déverrouillé, applique la logique du 29 du mois
+                    if (today.getDate() === 29) {
+                        displayAnniversaryContent();
+                    } else {
+                        displayWaitingContent();
+                    }
+                } else {
+                    siteUnlockError.textContent = "Code d'accès incorrect. Réessaie !";
+                    siteUnlockError.style.display = 'block';
+                }
+            }
+
+            // Gestion du clic sur le bouton de déverrouillage du site (2343)
+            siteUnlockButton.addEventListener('click', unlockSiteContent);
+
+            // Permet de déverrouiller le site avec la touche Entrée dans le champ de saisie (2343)
+            siteUnlockInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    unlockSiteContent();
+                }
+            });
+
+            // Gère le clic sur le bouton de déverrouillage du message mensuel (2202)
+            unlockButton.addEventListener('click', () => {
+                const enteredMonthlyCode = secretCodeInput.value.trim();
+                if (enteredMonthlyCode === SECRET_CODE_MONTHLY) {
+                    errorMessage.style.display = 'none';
+                    displayAnniversaryContent();
+                } else {
+                    errorMessage.textContent = "Code incorrect. Réessaie !";
+                    errorMessage.style.display = 'block';
+                }
+            });
+
+            // Permet de déverrouiller le message mensuel avec la touche Entrée dans le champ de saisie (2202)
+            secretCodeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    unlockButton.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
